@@ -1,65 +1,134 @@
 'use client'
 
-import { useState } from 'react'
-import { Activity, Filter } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { activityLogs } from '@/lib/mock-data'
 import { ActivityItem } from './activity-item'
 
+const DeviceMap = dynamic(() => import('./device-map'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[420px] items-center justify-center rounded-xl border border-border bg-card">
+      <p className="text-sm text-muted-foreground">
+        Loading device map...
+      </p>
+    </div>
+  ),
+})
+
 export function ActivityTab() {
-  const [filterType, setFilterType] = useState<string>('all')
-
-  const filteredLogs = activityLogs.filter((log) => {
-    if (filterType === 'all') return true
-    if (filterType === 'alerts') return log.type === 'alert' || log.type === 'warning'
-    if (filterType === 'updates') return log.type === 'info'
-    return true
-  })
-
   return (
     <div className="space-y-6">
-      {/* Activity Header & Filter */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">Audit & Activity Log</h2>
-          <p className="text-xs text-muted-foreground">
-            Real-time event logs, alert triggers, and telemetry reports.
+
+      {/* Page Header */}
+      <div>
+        <h2 className="text-xl font-semibold text-foreground">
+          Activity
+        </h2>
+
+        <p className="mt-1 text-sm text-muted-foreground">
+          Monitor temperature and humidity sensors.
+        </p>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid gap-4 sm:grid-cols-3">
+
+        {/* Temperature */}
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Average Temperature
+              </p>
+
+              <p className="mt-2 text-2xl font-semibold">
+                27.4°C
+              </p>
+
+              <p className="mt-1 text-xs text-emerald-600">
+                Normal
+              </p>
+            </div>
+
+            <div className="flex size-10 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
+              🌡️
+            </div>
+          </div>
+        </div>
+
+        {/* Humidity */}
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Average Humidity
+              </p>
+
+              <p className="mt-2 text-2xl font-semibold">
+                56%
+              </p>
+
+              <p className="mt-1 text-xs text-emerald-600">
+                Normal
+              </p>
+            </div>
+
+            <div className="flex size-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              💧
+            </div>
+          </div>
+        </div>
+
+        {/* Sensors */}
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Active Sensors
+              </p>
+
+              <p className="mt-2 text-2xl font-semibold">
+                24
+              </p>
+
+              <p className="mt-1 text-xs text-emerald-600">
+                21 online
+              </p>
+            </div>
+
+            <div className="flex size-10 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
+              📡
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Device Map */}
+      <DeviceMap />
+
+      {/* Recent Activity */}
+      <div>
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-foreground">
+            Recent Sensor Activity
+          </h3>
+
+          <p className="mt-1 text-sm text-muted-foreground">
+            Latest temperature and humidity readings.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          {[
-            { label: 'All events', value: 'all' },
-            { label: 'Alerts & Warnings', value: 'alerts' },
-            { label: 'System updates', value: 'updates' },
-          ].map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              onClick={() => setFilterType(item.value)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                filterType === item.value
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-card text-muted-foreground hover:bg-muted hover:text-foreground border border-border'
-              }`}
-            >
-              {item.label}
-            </button>
+        <div className="space-y-3">
+          {activityLogs.map((event) => (
+            <ActivityItem
+              key={event.id}
+              event={event}
+            />
           ))}
         </div>
       </div>
 
-      {/* Activity Timeline List */}
-      <div className="rounded-xl border border-border bg-card p-6">
-        <div className="space-y-6">
-          {filteredLogs.length > 0 ? (
-            filteredLogs.map((event) => <ActivityItem key={event.id} event={event} />)
-          ) : (
-            <div className="py-12 text-center text-sm text-muted-foreground">
-              No events found for this filter.
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
