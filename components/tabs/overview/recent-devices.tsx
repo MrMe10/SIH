@@ -1,56 +1,114 @@
 'use client'
 
-import { initialDevices } from '@/lib/mock-data'
-import { Thermometer } from 'lucide-react'
+import {
+  Droplets,
+  Thermometer,
+} from 'lucide-react'
 
-interface RecentDevicesProps {
-  onViewAll?: () => void
-}
+const readings = [
+  {
+    id: 'DR-001',
+    name: 'Temperature sensor',
+    value: '27.4°C',
+    location: 'Karnataka',
+    status: 'Normal',
+    icon: Thermometer,
+    iconStyle:
+      'bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-400',
+  },
+  {
+    id: 'DR-002',
+    name: 'Humidity sensor',
+    value: '78%',
+    location: 'Maharashtra',
+    status: 'Warning',
+    icon: Droplets,
+    iconStyle:
+      'bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400',
+  },
+  {
+    id: 'DR-003',
+    name: 'Temperature sensor',
+    value: '32.1°C',
+    location: 'Andhra Pradesh',
+    status: 'Alert',
+    icon: Thermometer,
+    iconStyle:
+      'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400',
+  },
+  {
+    id: 'DR-004',
+    name: 'Humidity sensor',
+    value: '54%',
+    location: 'Tamil Nadu',
+    status: 'Normal',
+    icon: Droplets,
+    iconStyle:
+      'bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400',
+  },
+]
 
-export function RecentDevices({ onViewAll }: RecentDevicesProps) {
-  // Show first 3 recent devices for summary view
-  const recentList = initialDevices.slice(0, 3)
-
+export function RecentDevices() {
   return (
-    <section className="rounded-xl border border-border bg-card p-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="font-semibold text-foreground">Recent devices</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">Latest device readings</p>
-        </div>
-        <button
-          type="button"
-          onClick={onViewAll}
-          className="text-xs font-semibold text-sky-700 hover:text-sky-800 dark:text-sky-400 dark:hover:text-sky-300"
-        >
-          View all
-        </button>
+    <div className="rounded-xl border border-border bg-card">
+      <div className="border-b border-border px-5 py-4">
+        <h3 className="text-sm font-semibold text-foreground">
+          Recent readings
+        </h3>
+
+        <p className="mt-1 text-xs text-muted-foreground">
+          Latest values received from sensors.
+        </p>
       </div>
 
-      <div className="mt-5 divide-y divide-border">
-        {recentList.map(({ name, id, value, status, icon: Icon = Thermometer, color, bg }) => (
-          <div key={id} className="flex items-center gap-3 py-3.5 first:pt-0 last:pb-0">
+      <div className="divide-y divide-border">
+        {readings.map((device) => {
+          const Icon = device.icon
+
+          return (
             <div
-              className={`flex size-10 items-center justify-center rounded-lg ${
-                bg || 'bg-muted'
-              }`}
+              key={device.id}
+              className="flex items-center gap-3 px-5 py-4"
             >
-              <Icon className={`size-4.5 ${color || 'text-foreground'}`} />
+              <div
+                className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${device.iconStyle}`}
+              >
+                <Icon className="size-4" />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-foreground">
+                  {device.name}
+                </p>
+
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  {device.id} · {device.location}
+                </p>
+              </div>
+
+              <div className="text-right">
+                <p className="text-sm font-semibold text-foreground">
+                  {device.value}
+                </p>
+
+                <p
+                  className={`mt-0.5 text-[11px] ${
+                    device.status === 'Normal'
+                      ? 'text-emerald-600'
+                      : device.status === 'Warning'
+                        ? 'text-amber-600'
+                        : 'text-rose-600'
+                  }`}
+                >
+                  {device.status}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-foreground">{name}</p>
-              <p className="text-xs text-muted-foreground">{id}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-semibold text-foreground">{value}</p>
-              <p className="flex items-center justify-end gap-1.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                <span className="size-1.5 rounded-full bg-emerald-500" />
-                {status}
-              </p>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
-    </section>
+    </div>
   )
 }
+
+export default RecentDevices
