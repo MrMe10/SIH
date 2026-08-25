@@ -30,12 +30,11 @@ export interface MetricCard {
 export interface ActivityEvent {
   id: string
   title: string
-  description: string
   timestamp: string
-  type: 'info' | 'warning' | 'success' | 'alert'
-  deviceId?: string
-  deviceName?: string
-  location?: string
+  type: 'success' | 'warning' | 'alert'
+  deviceId: string
+  sensorType: 'temperature' | 'humidity'
+  value: string
 }
 
 export interface ProjectLocation {

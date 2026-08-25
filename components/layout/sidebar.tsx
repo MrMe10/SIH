@@ -49,7 +49,11 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
           return (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab as TabType)}
+              // onClick={() => setActiveTab(tab as TabType)}
+              onClick={() => {
+  console.log('Clicked:', tab)
+  setActiveTab(tab as TabType)
+}}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
                 isActive
                   ? 'bg-primary text-primary-foreground shadow-xs'
