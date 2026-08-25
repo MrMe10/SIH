@@ -1,49 +1,114 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { Droplets, Thermometer } from 'lucide-react'
 
-const activityData24h = [
-  35, 48, 42, 66, 54, 72, 61, 80, 58, 76, 68, 91, 74, 84, 62, 70, 88, 64, 76, 94,
-  81, 72, 86, 78,
+const temperatureData = [
+  25, 26, 26.5, 27, 28, 27.5,
+  29, 30, 29, 28, 27.5, 28,
+  29.5, 31, 30, 29, 28.5, 29,
+  30, 32, 31, 29.5, 28.5, 28,
+]
+
+const humidityData = [
+  58, 60, 61, 63, 65, 64,
+  66, 68, 67, 65, 64, 62,
+  64, 69, 72, 70, 68, 66,
+  67, 71, 74, 70, 65, 62,
 ]
 
 export function SensorActivityChart() {
-  const [timeRange, setTimeRange] = useState('Last 24 hours')
+  const [activeSensor, setActiveSensor] = useState<
+    'temperature' | 'humidity'
+  >('temperature')
+
+  const data =
+    activeSensor === 'temperature'
+      ? temperatureData
+      : humidityData
+
+  const max =
+    activeSensor === 'temperature' ? 35 : 80
+
+  const min =
+    activeSensor === 'temperature' ? 20 : 40
 
   return (
-    <section className="rounded-xl border border-border bg-card p-5">
-      <div className="flex items-center justify-between">
+    <div className="rounded-xl border border-border bg-card">
+      <div className="flex flex-col gap-4 border-b border-border px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="font-semibold text-foreground">Sensor activity</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Events and telemetry across your project
+          <h3 className="text-sm font-semibold text-foreground">
+            Sensor activity
+          </h3>
+
+          <p className="mt-1 text-xs text-muted-foreground">
+            Temperature and humidity readings over the last 24 hours.
           </p>
         </div>
-        <button
-          type="button"
-          className="flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
-        >
-          {timeRange} <ChevronDown className="size-3" />
-        </button>
+
+        <div className="flex rounded-lg border border-border bg-muted/40 p-1">
+          <button
+            type="button"
+            onClick={() => setActiveSensor('temperature')}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium ${
+              activeSensor === 'temperature'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground'
+            }`}
+          >
+            <Thermometer className="size-3.5" />
+            Temperature
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSensor('humidity')}
+            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium ${
+              activeSensor === 'humidity'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground'
+            }`}
+          >
+            <Droplets className="size-3.5" />
+            Humidity
+          </button>
+        </div>
       </div>
 
-      <div className="mt-8 h-48">
-        <div className="flex h-full items-end gap-1.5 sm:gap-2.5">
-          {activityData24h.map((height, i) => (
-            <div key={i} className="group relative flex h-full flex-1 items-end">
+      <div className="p-5">
+        <div className="flex h-56 items-end gap-1 sm:gap-2">
+          {data.map((value, index) => {
+            const height =
+              ((value - min) / (max - min)) * 100
+
+            return (
               <div
-                style={{ height: `${height}%` }}
-                className="w-full rounded-t-xs bg-sky-200/80 transition-all group-hover:bg-sky-500 dark:bg-sky-900/60 dark:group-hover:bg-sky-400"
-              />
-              {/* Tooltip on hover */}
-              <div className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 transition-opacity group-hover:opacity-100 bg-popover text-popover-foreground text-[10px] font-semibold px-1.5 py-0.5 rounded shadow-sm whitespace-nowrap z-10">
-                {height * 12} events
+                key={index}
+                className="group relative flex h-full flex-1 items-end"
+              >
+                <div
+                  className={`w-full rounded-t-md transition-all group-hover:opacity-80 ${
+                    activeSensor === 'temperature'
+                      ? 'bg-sky-400'
+                      : 'bg-cyan-400'
+                  }`}
+                  style={{
+                    height: `${Math.max(height, 8)}%`,
+                  }}
+                />
+
+                <div className="absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-[10px] text-background group-hover:block">
+                  {value}
+                  {activeSensor === 'temperature'
+                    ? '°C'
+                    : '%'}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
-        <div className="mt-3 flex justify-between text-[11px] font-medium text-muted-foreground">
+
+        <div className="mt-3 flex justify-between text-[11px] text-muted-foreground">
           <span>12 AM</span>
           <span>6 AM</span>
           <span>12 PM</span>
@@ -51,6 +116,8 @@ export function SensorActivityChart() {
           <span>Now</span>
         </div>
       </div>
-    </section>
+    </div>
   )
 }
+
+export default SensorActivityChart
