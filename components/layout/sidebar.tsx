@@ -2,11 +2,9 @@
 
 import {
   Activity,
-  CircleHelp,
   Cpu,
   LayoutDashboard,
   Radio,
-  Settings,
 } from 'lucide-react'
 import { navigationTabs } from '@/lib/mock-data'
 import { TabType } from '@/types/iot'
@@ -64,17 +62,6 @@ export function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
           )
         })}
 
-        <p className="mt-8 px-3 pb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          Manage
-        </p>
-        <button className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-          <Settings className="size-4" />
-          Settings
-        </button>
-        <button className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-          <CircleHelp className="size-4" />
-          Help center
-        </button>
       </div>
 
       <div className="rounded-xl border border-border bg-muted/50 p-3.5">
