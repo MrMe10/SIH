@@ -40,6 +40,7 @@ export interface HardwareHealth {
 export interface ESP32Device {
   id: string
   name: string
+  parentModule?: string
   location: string
   applicationNote: string
   status: DeviceStatus
@@ -59,4 +60,15 @@ export interface ESP32Device {
     rssi: number
     heapKb: number
   }[]
+}
+
+export interface ParentModule {
+  id: string
+  name: string
+  location: string
+  ipAddress: string
+  protocol: string
+  status: 'online' | 'warning' | 'offline'
+  nodeIds: string[]
+  description?: string
 }

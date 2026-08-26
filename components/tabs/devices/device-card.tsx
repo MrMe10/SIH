@@ -10,6 +10,7 @@ import {
   Wifi,
 } from 'lucide-react'
 import { ESP32Device } from './types'
+import { PARENT_MODULES } from './parent-modules'
 
 interface DeviceCardProps {
   device: ESP32Device
@@ -20,6 +21,11 @@ export function DeviceCard({ device, onInspect }: DeviceCardProps) {
   const isHealthy = device.status === 'healthy'
   const isWarning = device.status === 'warning'
   const freeHeapKb = Math.round(device.hardware.freeHeapBytes / 1024)
+
+  const parentMod = PARENT_MODULES.find(
+    (m) => m.nodeIds.includes(device.id) || m.id === device.parentModule
+  )
+  const parentModId = parentMod?.id || device.parentModule || 'DHR-GW-01'
 
   // Clean probe model display name (e.g. SHT31, DS18B20, BME280)
   const tempModel = device.temperatureSensor.model.split(' ')[0]
@@ -37,7 +43,7 @@ export function DeviceCard({ device, onInspect }: DeviceCardProps) {
             {device.name}
           </h3>
           <p className="text-xs text-muted-foreground truncate mt-0.5">
-            {device.location} · <span className="font-mono text-[11px] opacity-80">{device.hardware.uptimeString}</span>
+            {device.location} · <span className="font-mono text-[11px] opacity-80">{device.hardware.uptimeString}</span> · <span className="font-mono text-[10px] bg-muted px-1 rounded border border-border/50" title={`Attached to: ${parentMod?.name || parentModId}`}>{parentModId}</span>
           </p>
         </div>
       </div>
