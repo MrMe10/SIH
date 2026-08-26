@@ -97,7 +97,7 @@ export function SensorActivityChart() {
                   }}
                 />
 
-                <div className="absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-[10px] text-background group-hover:block">
+                <div className="absolute bottom-full left-1/2 mb-2 hidden -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-[10px] text- group-hover:block">
                   {value}
                   {activeSensor === 'temperature'
                     ? '°C'

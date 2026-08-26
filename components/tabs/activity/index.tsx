@@ -1,136 +1,120 @@
-'use client'
+import React, { useState, useMemo, useEffect } from 'react';
+import { INITIAL_ROOMS } from './mock-data';
+import { Room, getOverallStatus } from './types';
+import { SimulationGrid } from './simulation-grid';
+import { RoomDetails } from './room-details';
+import { SimulationControls } from './simulation-controls';
+// import { SimulationAlert } from './simulation-alert';
+import { ActivityChart } from './activity-chart';
+import DeviceMap from './device-map'; // Existing import
 
-import dynamic from 'next/dynamic'
-import { activityLogs } from '@/lib/mock-data'
-import { ActivityItem } from './activity-item'
+export default function ActivityTab() {
+  const [activeView, setActiveView] = useState<'simulation' | 'deviceMap'>('simulation');
+  const [rooms, setRooms] = useState<Room[]>(INITIAL_ROOMS);
+  const [selectedRoomId, setSelectedRoomId] = useState<string>('R-03');
+  const [isSimulating, setIsSimulating] = useState<boolean>(false);
 
-const DeviceMap = dynamic(() => import('./device-map'), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-[420px] items-center justify-center rounded-xl border border-border bg-card">
-      <p className="text-sm text-muted-foreground">
-        Loading device map...
-      </p>
-    </div>
-  ),
-})
+  const selectedRoom = useMemo(() => {
+    return rooms.find((r) => r.id === selectedRoomId) || rooms[0];
+  }, [rooms, selectedRoomId]);
 
-export function ActivityTab() {
+  const summary = useMemo(() => {
+    let normal = 0, warning = 0, alert = 0;
+    rooms.forEach((room) => {
+      const status = getOverallStatus(room);
+      if (status === 'normal') normal++;
+      else if (status === 'warning') warning++;
+      else if (status === 'alert') alert++;
+    });
+    return { total: rooms.length, normal, warning, alert };
+  }, [rooms]);
+
+  const updateSelectedRoomParam = (key: 'temperature' | 'humidity' | 'gas', value: number) => {
+    setRooms((prevRooms) =>
+      prevRooms.map((room) => {
+        if (room.id !== selectedRoomId) return room;
+        const updatedRoom = { ...room, [key]: value };
+        const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const newHistoryItem = { time: timeStr, temperature: updatedRoom.temperature, humidity: updatedRoom.humidity, gas: updatedRoom.gas };
+        return { ...updatedRoom, history: [...updatedRoom.history.slice(-9), newHistoryItem] };
+      })
+    );
+  };
+
   return (
-    <div className="space-y-6">
-
-      {/* Page Header */}
-      <div>
-        <h2 className="text-xl font-semibold text-foreground">
-          Activity
-        </h2>
-
-        <p className="mt-1 text-sm text-muted-foreground">
-          Monitor temperature and humidity sensors.
-        </p>
+    <div className="p-6 bg-slate-950 text-slate-100 min-h-screen">
+      {/* Navigation Toggle between Simulation & Legacy Device Map */}
+      <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
+        <div>
+          <h1 className="text-2xl font-bold text-white">DHRISHTI Activity Module</h1>
+          <p className="text-xs text-slate-400 mt-1">Real-time micro-climate simulation & node monitoring</p>
+        </div>
+        <div className="flex bg-slate-900 p-1 rounded-lg border border-slate-800">
+          <button
+            onClick={() => setActiveView('simulation')}
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              activeView === 'simulation' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'text-slate-400'
+            }`}
+          >
+            Simulation Module
+          </button>
+          <button
+            onClick={() => setActiveView('deviceMap')}
+            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              activeView === 'deviceMap' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'text-slate-400'
+            }`}
+          >
+            Device Map View
+          </button>
+        </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
-
-        {/* Temperature */}
-        <div className="rounded-xl border border-border bg-card p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">
-                Average Temperature
-              </p>
-
-              <p className="mt-2 text-2xl font-semibold">
-                27.4°C
-              </p>
-
-              <p className="mt-1 text-xs text-emerald-600">
-                Normal
-              </p>
+      {activeView === 'deviceMap' ? (
+        <DeviceMap />
+      ) : (
+        <>
+          {/* Warehouse Metrics Header */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+              <p className="text-xs text-slate-400">Total Rooms</p>
+              <p className="text-2xl font-bold text-white">{summary.total}</p>
             </div>
-
-            <div className="flex size-10 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
-              🌡️
+            <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+              <p className="text-xs text-emerald-400">Normal</p>
+              <p className="text-2xl font-bold text-emerald-400">{summary.normal}</p>
             </div>
-          </div>
-        </div>
-
-        {/* Humidity */}
-        <div className="rounded-xl border border-border bg-card p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">
-                Average Humidity
-              </p>
-
-              <p className="mt-2 text-2xl font-semibold">
-                56%
-              </p>
-
-              <p className="mt-1 text-xs text-emerald-600">
-                Normal
-              </p>
+            <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+              <p className="text-xs text-amber-400">Warning</p>
+              <p className="text-2xl font-bold text-amber-400">{summary.warning}</p>
             </div>
-
-            <div className="flex size-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-              💧
+            <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+              <p className="text-xs text-rose-400">Alert</p>
+              <p className="text-2xl font-bold text-rose-400">{summary.alert}</p>
             </div>
           </div>
-        </div>
 
-        {/* Sensors */}
-        <div className="rounded-xl border border-border bg-card p-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">
-                Active Sensors
-              </p>
+          <SimulationGrid rooms={rooms} selectedRoomId={selectedRoomId} onSelectRoom={setSelectedRoomId} />
 
-              <p className="mt-2 text-2xl font-semibold">
-                24
-              </p>
-
-              <p className="mt-1 text-xs text-emerald-600">
-                21 online
-              </p>
-            </div>
-
-            <div className="flex size-10 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
-              📡
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Device Map */}
-      <DeviceMap />
-
-      {/* Recent Activity */}
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-foreground">
-            Recent Sensor Activity
-          </h3>
-
-          <p className="mt-1 text-sm text-muted-foreground">
-            Latest temperature and humidity readings.
-          </p>
-        </div>
-
-        <div className="space-y-3">
-          {activityLogs.map((event) => (
-            <ActivityItem
-              key={event.id}
-              event={event}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <RoomDetails room={selectedRoom} />
+            <SimulationControls
+              temperature={selectedRoom.temperature}
+              humidity={selectedRoom.humidity}
+              gas={selectedRoom.gas}
+              isSimulating={isSimulating}
+              onTemperatureChange={(val) => updateSelectedRoomParam('temperature', val)}
+              onHumidityChange={(val) => updateSelectedRoomParam('humidity', val)}
+              onGasChange={(val) => updateSelectedRoomParam('gas', val)}
+              onToggleSimulation={() => setIsSimulating(!isSimulating)}
+              onReset={() => setRooms(INITIAL_ROOMS)}
+              onApplyScenario={() => {}}
             />
-          ))}
-        </div>
-      </div>
+          </div>
 
+          {/* <SimulationAlert room={selectedRoom} />
+          <ActivityChart data={selectedRoom.history} roomName={selectedRoom.name} /> */}
+        </>
+      )}
     </div>
-  )
+  );
 }
-
-export default ActivityTab
