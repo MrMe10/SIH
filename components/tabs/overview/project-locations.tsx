@@ -11,170 +11,102 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import {
+  ExternalLink,
+  MapPin,
+  Radio,
+  RotateCcw,
+} from "lucide-react";
+import { PARENT_MODULES } from "@/components/tabs/devices/parent-modules";
+import { ParentModule } from "@/components/tabs/devices/types";
 
-type SensorStatus = "online" | "warning" | "alert";
-
-interface Sensor {
-  id: string;
-  location: string;
-  latitude: number;
-  longitude: number;
-  temperature: number;
-  humidity: number;
-  gasLevel: number;
-  status: SensorStatus;
+interface ProjectLocationsProps {
+  onInspectDevice?: (deviceId: string, parentModuleId?: string) => void;
+  onInspectParentModule?: (moduleId: string) => void;
 }
 
 /* =========================================================
-   DHRISHTI KARNATAKA DEVICES
-   ========================================================= */
-
-const sensors: Sensor[] = [
-  {
-    id: "DR-001",
-    location: "Mangalore, Karnataka",
-    latitude: 12.9141,
-    longitude: 74.856,
-    temperature: 27,
-    humidity: 62,
-    gasLevel: 18,
-    status: "online",
-  },
-
-  {
-    id: "DR-002",
-    location: "Udupi, Karnataka",
-    latitude: 13.3409,
-    longitude: 74.7421,
-    temperature: 29,
-    humidity: 65,
-    gasLevel: 24,
-    status: "online",
-  },
-
-  {
-    id: "DR-003",
-    location: "Bengaluru, Karnataka",
-    latitude: 12.9716,
-    longitude: 77.5946,
-    temperature: 34,
-    humidity: 78,
-    gasLevel: 62,
-    status: "warning",
-  },
-
-  {
-    id: "DR-004",
-    location: "Mysuru, Karnataka",
-    latitude: 12.2958,
-    longitude: 76.6394,
-    temperature: 26,
-    humidity: 60,
-    gasLevel: 16,
-    status: "online",
-  },
-
-  {
-    id: "DR-005",
-    location: "Hubballi, Karnataka",
-    latitude: 15.3647,
-    longitude: 75.124,
-    temperature: 30,
-    humidity: 67,
-    gasLevel: 28,
-    status: "online",
-  },
-
-  {
-    id: "DR-006",
-    location: "Belagavi, Karnataka",
-    latitude: 15.8497,
-    longitude: 74.4977,
-    temperature: 32,
-    humidity: 72,
-    gasLevel: 45,
-    status: "warning",
-  },
-
-  {
-    id: "DR-007",
-    location: "Shivamogga, Karnataka",
-    latitude: 13.9299,
-    longitude: 75.5681,
-    temperature: 28,
-    humidity: 69,
-    gasLevel: 20,
-    status: "online",
-  },
-
-  {
-    id: "DR-008",
-    location: "Kalaburagi, Karnataka",
-    latitude: 17.3297,
-    longitude: 76.8343,
-    temperature: 31,
-    humidity: 73,
-    gasLevel: 32,
-    status: "online",
-  },
-];
-
-/* =========================================================
-   INDIA MAP DATA
+   INDIA MAP DATA & CENTER
    ========================================================= */
 
 const INDIA_GEOJSON_URL =
   "https://raw.githubusercontent.com/india-in-data/india-states-2019/master/india_states.geojson";
 
-/* =========================================================
-   INDIA MAP CENTER
-   ========================================================= */
-
-const INDIA_CENTER: [number, number] = [
-  22.5,
-  79.0,
-];
+const DEFAULT_MAP_CENTER: [number, number] = [17.5, 76.5];
+const DEFAULT_MAP_ZOOM = 5;
 
 /* =========================================================
    MAP CONTROLLER
    ========================================================= */
 
-function MapController() {
+function MapController({
+  selectedGateway,
+  gateways,
+  resetCounter,
+}: {
+  selectedGateway?: string | null;
+  gateways: ParentModule[];
+  resetCounter?: number;
+}) {
   const map = useMap();
 
   useEffect(() => {
-    map.setView(INDIA_CENTER, 5);
+    map.setView(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM);
 
     map.setMaxBounds([
-      [6, 68],
-      [37, 98],
+      [-15, 30],
+      [50, 130],
     ]);
 
-    map.setMinZoom(5);
-    map.setMaxZoom(10);
+    map.setMinZoom(4);
+    map.setMaxZoom(18);
   }, [map]);
+
+  // Invalidate map size on layout load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [map]);
+
+  // Handle auto-zoom to selected gateway or reset back to the default overview
+  useEffect(() => {
+    if (!selectedGateway) {
+      map.flyTo(DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM, {
+        duration: 1.2,
+      });
+      return;
+    }
+
+    const gw = gateways.find((g) => g.id === selectedGateway);
+    if (gw && gw.latitude && gw.longitude) {
+      map.flyTo([gw.latitude, gw.longitude], 12, {
+        duration: 1.4,
+      });
+    }
+  }, [selectedGateway, gateways, map, resetCounter]);
 
   return null;
 }
 
 /* =========================================================
-   SENSOR ICON
+   OLD CIRCULAR MAP ICON (RESTORED)
    ========================================================= */
 
-function createSensorIcon(status: SensorStatus) {
-  let color = "#16a34a";
+function createMapIcon(status: string) {
+  let color = "#16a34a"; // emerald green
 
   if (status === "warning") {
-    color = "#f59e0b";
+    color = "#f59e0b"; // amber
   }
 
-  if (status === "alert") {
-    color = "#dc2626";
+  if (status === "offline" || status === "alert") {
+    color = "#dc2626"; // red
   }
 
   return L.divIcon({
-    className: "dhrishti-sensor-marker",
-
+    className: "dhrishti-map-marker",
     html: `
       <div
         style="
@@ -183,7 +115,7 @@ function createSensorIcon(status: SensorStatus) {
           border-radius: 50%;
           background: ${color};
           border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          box-shadow: 0 2px 8px rgba(0,0,0,0.35);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -195,7 +127,6 @@ function createSensorIcon(status: SensorStatus) {
         ●
       </div>
     `,
-
     iconSize: [28, 28],
     iconAnchor: [14, 14],
     popupAnchor: [0, -14],
@@ -203,46 +134,23 @@ function createSensorIcon(status: SensorStatus) {
 }
 
 /* =========================================================
-   STATUS
-   ========================================================= */
-
-function getStatusColor(status: SensorStatus) {
-  if (status === "alert") {
-    return "#dc2626";
-  }
-
-  if (status === "warning") {
-    return "#d97706";
-  }
-
-  return "#15803d";
-}
-
-function getStatusText(status: SensorStatus) {
-  if (status === "alert") {
-    return "Alert";
-  }
-
-  if (status === "warning") {
-    return "Warning";
-  }
-
-  return "Online";
-}
-
-/* =========================================================
    MAIN COMPONENT
    ========================================================= */
 
-export default function ProjectLocations() {
-  const [indiaGeoJson, setIndiaGeoJson] =
-    useState<any>(null);
+export default function ProjectLocations({
+  onInspectParentModule,
+}: ProjectLocationsProps = {}) {
+  const [indiaGeoJson, setIndiaGeoJson] = useState<any>(null);
+  const [selectedGatewayId, setSelectedGatewayId] = useState<string | null>(null);
+  const [resetCounter, setResetCounter] = useState(0);
+  const [mapError, setMapError] = useState(false);
 
-  const [selectedSensor, setSelectedSensor] =
-    useState<string | null>(null);
+  const gateways = PARENT_MODULES;
 
-  const [mapError, setMapError] =
-    useState(false);
+  const handleResetMap = () => {
+    setSelectedGatewayId(null);
+    setResetCounter((prev) => prev + 1);
+  };
 
   /* =======================================================
      LOAD INDIA GEOJSON
@@ -252,502 +160,317 @@ export default function ProjectLocations() {
     async function loadIndiaMap() {
       try {
         setMapError(false);
-
-        const response = await fetch(
-          INDIA_GEOJSON_URL
-        );
-
+        const response = await fetch(INDIA_GEOJSON_URL);
         if (!response.ok) {
-          throw new Error(
-            "Unable to load India GeoJSON"
-          );
+          throw new Error("Unable to load India GeoJSON");
         }
-
         const data = await response.json();
-
         setIndiaGeoJson(data);
       } catch (error) {
-        console.error(
-          "India GeoJSON error:",
-          error
-        );
-
+        console.error("India GeoJSON error:", error);
         setMapError(true);
       }
     }
-
     loadIndiaMap();
   }, []);
 
   /* =======================================================
-     FIND KARNATAKA
+     FIND KARNATAKA IN GEOJSON
      ======================================================= */
 
   const karnatakaFeature = useMemo(() => {
-    if (!indiaGeoJson) {
-      return null;
-    }
-
-    const feature =
-      indiaGeoJson.features?.find(
-        (feature: any) => {
-          const properties =
-            feature.properties || {};
-
-          const stateName =
-            properties.st_nm ||
-            properties.ST_NM ||
-            properties.STNAME ||
-            properties.NAME_1 ||
-            properties.name;
-
-          return (
-            typeof stateName === "string" &&
-            stateName.toLowerCase() ===
-              "karnataka"
-          );
-        }
+    if (!indiaGeoJson) return null;
+    const feature = indiaGeoJson.features?.find((f: any) => {
+      const properties = f.properties || {};
+      const stateName =
+        properties.st_nm ||
+        properties.ST_NM ||
+        properties.STNAME ||
+        properties.NAME_1 ||
+        properties.name;
+      return (
+        typeof stateName === "string" &&
+        stateName.toLowerCase() === "karnataka"
       );
-
+    });
     return feature || null;
   }, [indiaGeoJson]);
 
-  /* =======================================================
-     ONLY KARNATAKA DEVICES
-     ======================================================= */
-
-  const karnatakaSensors = useMemo(() => {
-    return sensors.filter((sensor) =>
-      sensor.location
-        .toLowerCase()
-        .includes("karnataka")
-    );
-  }, []);
-
-  /* =======================================================
-     COUNTS
-     ======================================================= */
-
-  const onlineCount =
-    karnatakaSensors.filter(
-      (sensor) =>
-        sensor.status === "online"
-    ).length;
-
-  const warningCount =
-    karnatakaSensors.filter(
-      (sensor) =>
-        sensor.status === "warning"
-    ).length;
-
-  const alertCount =
-    karnatakaSensors.filter(
-      (sensor) =>
-        sensor.status === "alert"
-    ).length;
+  const onlineGateways = gateways.filter((g) => g.status === "online").length;
+  const warningGateways = gateways.filter((g) => g.status === "warning").length;
 
   return (
-    <section className="w-full overflow-hidden rounded-2xl border border-gray-100 bg-white">
-
+    <section className="w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       {/* ==================================================
           HEADER
       ================================================== */}
 
-      <div className="flex flex-col gap-4 border-b border-gray-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-
+      <div className="flex flex-col gap-4 border-b border-border px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50">
-            <span className="text-xl">
-              📍
-            </span>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+            <Radio className="size-5" />
           </div>
 
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              DHRISHTI Device Map
+            <h2 className="text-lg font-semibold text-foreground">
+              DHRISHTI Parent Modules
             </h2>
-
-            <p className="text-sm text-gray-500">
-              India → Karnataka sensor deployment
+            <p className="text-sm text-muted-foreground">
+              Tracked parent module locations across Karnataka
             </p>
           </div>
-
         </div>
 
-        {/* STATUS */}
-
+        {/* STATUS COUNTS */}
         <div className="flex flex-wrap items-center gap-4 text-xs">
-
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-green-600" />
-
-            <span className="text-gray-600">
-              {onlineCount} Online
+            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            <span className="text-muted-foreground">
+              {onlineGateways} Online
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-
-            <span className="text-gray-600">
-              {warningCount} Warning
+            <span className="text-muted-foreground">
+              {warningGateways} Warning
             </span>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-600" />
-
-            <span className="text-gray-600">
-              {alertCount} Alert
+            <span className="h-2.5 w-2.5 rounded-full bg-sky-500" />
+            <span className="text-muted-foreground">
+              {gateways.length} Tracked Modules
             </span>
           </div>
-
         </div>
       </div>
 
       {/* ==================================================
-          MAP
+          BODY: MAP (LEFT) & PARENT MODULES (RIGHT)
       ================================================== */}
 
-      <div className="relative h-[520px] w-full">
-
-        <MapContainer
-          center={INDIA_CENTER}
-          zoom={5}
-          scrollWheelZoom={true}
-          className="h-full w-full"
-        >
-
-          {/* OpenStreetMap */}
-
-          <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          <MapController />
-
-          {/* =================================================
-              INDIA STATES
-          ================================================= */}
-
-          {indiaGeoJson && (
-            <GeoJSON
-              data={indiaGeoJson}
-              style={() => ({
-                color: "#94a3b8",
-                weight: 1,
-                fillColor: "#f8fafc",
-                fillOpacity: 0.45,
-              })}
+      <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[540px]">
+        {/* MAP ON LEFT */}
+        <div className="relative h-[440px] lg:h-auto lg:col-span-7 xl:col-span-8 w-full border-b lg:border-b-0 lg:border-r border-border">
+          <MapContainer
+            center={DEFAULT_MAP_CENTER}
+            zoom={DEFAULT_MAP_ZOOM}
+            scrollWheelZoom={true}
+            className="h-full w-full min-h-[440px] lg:min-h-[540px]"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-          )}
 
-          {/* =================================================
-              KARNATAKA
-          ================================================= */}
+            <MapController
+              selectedGateway={selectedGatewayId}
+              gateways={gateways}
+              resetCounter={resetCounter}
+            />
 
-          {karnatakaFeature && (
-            <GeoJSON
-              key="karnataka"
-              data={karnatakaFeature}
-              style={() => ({
-                color: "#15803d",
-                weight: 3,
-                fillColor: "#22c55e",
-                fillOpacity: 0.35,
-              })}
-              onEachFeature={(_, layer) => {
-                layer.bindTooltip(
-                  "Karnataka",
-                  {
+            {/* INDIA STATES */}
+            {indiaGeoJson && (
+              <GeoJSON
+                data={indiaGeoJson}
+                style={() => ({
+                  color: "#94a3b8",
+                  weight: 1,
+                  fillColor: "#f8fafc",
+                  fillOpacity: 0.45,
+                })}
+              />
+            )}
+
+            {/* KARNATAKA HIGHLIGHT */}
+            {karnatakaFeature && (
+              <GeoJSON
+                key="karnataka"
+                data={karnatakaFeature}
+                style={() => ({
+                  color: "#059669",
+                  weight: 3,
+                  fillColor: "#10b981",
+                  fillOpacity: 0.35,
+                })}
+                onEachFeature={(_, layer) => {
+                  layer.bindTooltip("Karnataka", {
                     permanent: true,
                     direction: "center",
-                  }
-                );
-              }}
-            />
-          )}
+                  });
+                }}
+              />
+            )}
 
-          {/* =================================================
-              DEVICES
-              ONLY KARNATAKA DEVICES
-          ================================================= */}
-
-          {karnatakaSensors.map(
-            (sensor) => (
+            {/* PARENT MODULE MARKERS (OLD CIRCULAR ICONS) */}
+            {gateways.map((gw) => (
               <Marker
-                key={sensor.id}
-                position={[
-                  sensor.latitude,
-                  sensor.longitude,
-                ]}
-                icon={createSensorIcon(
-                  sensor.status
-                )}
+                key={gw.id}
+                position={[gw.latitude, gw.longitude]}
+                icon={createMapIcon(gw.status)}
                 eventHandlers={{
                   click: () => {
-                    setSelectedSensor(
-                      sensor.id
-                    );
+                    setSelectedGatewayId(gw.id);
                   },
                 }}
               >
-
                 <Popup>
-
-                  <div className="min-w-[220px]">
-
+                  <div className="min-w-[220px] p-1 text-card-foreground">
                     <div className="mb-2 flex items-center justify-between">
-
-                      <h3 className="font-semibold text-gray-900">
-                        {sensor.id}
+                      <h3 className="font-bold text-gray-900 text-sm">
+                        {gw.name}
                       </h3>
-
                       <span
-                        className="text-xs font-semibold"
-                        style={{
-                          color:
-                            getStatusColor(
-                              sensor.status
-                            ),
-                        }}
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          gw.status === "online"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-amber-100 text-amber-800"
+                        }`}
                       >
-                        {getStatusText(
-                          sensor.status
-                        )}
+                        {gw.status.toUpperCase()}
                       </span>
-
                     </div>
 
-                    <p className="mb-4 text-xs text-gray-500">
-                      {sensor.location}
+                    <p className="mb-3 text-xs text-gray-600 flex items-center gap-1">
+                      <MapPin className="size-3 text-emerald-600 shrink-0" />
+                      {gw.location}
                     </p>
 
-                    <div className="grid grid-cols-2 gap-2">
-
-                      <div className="rounded-lg bg-gray-50 p-2">
-                        <p className="text-[11px] text-gray-500">
-                          Temperature
-                        </p>
-
-                        <p className="font-semibold text-gray-900">
-                          {sensor.temperature}°C
-                        </p>
-                      </div>
-
-                      <div className="rounded-lg bg-gray-50 p-2">
-                        <p className="text-[11px] text-gray-500">
-                          Humidity
-                        </p>
-
-                        <p className="font-semibold text-gray-900">
-                          {sensor.humidity}%
-                        </p>
-                      </div>
-
-                      <div className="col-span-2 rounded-lg bg-gray-50 p-2">
-                        <p className="text-[11px] text-gray-500">
-                          Gas Level
-                        </p>
-
-                        <p className="font-semibold text-gray-900">
-                          {sensor.gasLevel}
-                        </p>
-                      </div>
-
-                    </div>
-
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onInspectParentModule?.(gw.id);
+                      }}
+                      className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 transition"
+                    >
+                      <ExternalLink className="size-3.5" />
+                      View Details in Devices Tab
+                    </button>
                   </div>
-
                 </Popup>
-
               </Marker>
-            )
+            ))}
+          </MapContainer>
+
+          {/* REGION CARD */}
+          <div className="absolute left-5 top-5 z-[1000]">
+            <div className="rounded-xl border border-border bg-card/95 px-4 py-3 shadow-md backdrop-blur">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Deployment Region
+              </p>
+              <p className="mt-0.5 font-bold text-foreground">
+                🇮🇳 India → Karnataka
+              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                  {gateways.length} Parent Modules Active
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ERROR DISPLAY */}
+          {mapError && (
+            <div className="absolute right-5 top-5 z-[1000] rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+              India map boundary data could not be loaded.
+            </div>
           )}
+        </div>
 
-        </MapContainer>
+        {/* ==================================================
+            PARENT MODULES LIST (RIGHT)
+            CLEAN & MINIMAL: PARENT MODULE NAME + DETAILS BUTTON
+        ================================================== */}
+        <div className="flex flex-col lg:col-span-5 xl:col-span-4 p-5 lg:p-6 bg-card max-h-[540px] lg:max-h-[600px]">
+          <div className="mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-foreground">
+                Parent Modules
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Tracked regional modules in Karnataka
+              </p>
+            </div>
 
-        {/* =================================================
-            REGION CARD
-        ================================================= */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleResetMap}
+                className="flex items-center gap-1 rounded-lg border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground shadow-2xs"
+                title="Reset map view"
+              >
+                <RotateCcw className="size-3 text-emerald-600 dark:text-emerald-400" />
+                <span>Reset View</span>
+              </button>
 
-        <div className="absolute left-5 top-5 z-[1000]">
-
-          <div className="rounded-xl border border-gray-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
-
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-              Deployment Region
-            </p>
-
-            <p className="mt-1 font-semibold text-gray-900">
-              🇮🇳 India
-            </p>
-
-            <div className="mt-1 flex items-center gap-2">
-
-              <span className="h-2.5 w-2.5 rounded-full bg-green-600" />
-
-              <span className="text-sm font-medium text-green-700">
-                Karnataka
+              <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                {gateways.length} Modules
               </span>
-
             </div>
-
-            <p className="mt-1 text-xs text-gray-500">
-              {karnatakaSensors.length} devices deployed
-            </p>
-
           </div>
 
-        </div>
-
-        {/* =================================================
-            LEGEND
-        ================================================= */}
-
-        <div className="absolute bottom-5 left-5 z-[1000]">
-
-          <div className="rounded-xl border border-gray-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur">
-
-            <p className="mb-2 text-xs font-semibold text-gray-700">
-              Device Status
-            </p>
-
-            <div className="flex flex-wrap gap-4 text-xs text-gray-600">
-
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-green-600" />
-                Online
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-                Warning
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-red-600" />
-                Alert
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* =================================================
-            ERROR
-        ================================================= */}
-
-        {mapError && (
-
-          <div className="absolute right-5 top-5 z-[1000] rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
-
-            India map boundary data could not be loaded.
-
-          </div>
-
-        )}
-
-      </div>
-
-      {/* ==================================================
-          KARNATAKA DEVICE LIST
-      ================================================== */}
-
-      <div className="border-t border-gray-100 px-6 py-5">
-
-        <div className="mb-4 flex items-center justify-between">
-
-          <div>
-
-            <h3 className="font-semibold text-gray-900">
-              Karnataka Devices
-            </h3>
-
-            <p className="text-sm text-gray-500">
-              DHRISHTI devices deployed only in Karnataka
-            </p>
-
-          </div>
-
-          <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-            {karnatakaSensors.length} Devices
-          </span>
-
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-
-          {karnatakaSensors.map(
-            (sensor) => {
-
-              const selected =
-                selectedSensor ===
-                sensor.id;
+          {/* Parent Module Cards List */}
+          <div className="flex-1 overflow-y-auto pr-1 space-y-2.5">
+            {gateways.map((gw) => {
+              const isSelected = selectedGatewayId === gw.id;
+              const isWarning = gw.status === "warning";
 
               return (
-                <button
-                  key={sensor.id}
-                  type="button"
-                  onClick={() =>
-                    setSelectedSensor(
-                      sensor.id
-                    )
-                  }
-                  className={`rounded-xl border p-3 text-left transition ${
-                    selected
-                      ? "border-green-500 bg-green-50"
-                      : "border-gray-100 bg-gray-50 hover:border-gray-200"
+                <div
+                  key={gw.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedGatewayId(gw.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      setSelectedGatewayId(gw.id);
+                    }
+                  }}
+                  className={`group relative flex items-center justify-between w-full cursor-pointer rounded-xl border p-3.5 text-left transition-all ${
+                    isSelected
+                      ? "border-emerald-500 bg-emerald-500/10 shadow-sm ring-1 ring-emerald-500/30"
+                      : "border-border bg-card hover:border-emerald-500/40 hover:bg-muted/40"
                   }`}
                 >
-
-                  <div className="flex items-center justify-between">
-
-                    <span className="text-sm font-semibold text-gray-900">
-                      {sensor.id}
-                    </span>
-
+                  {/* Parent Module Name & Status */}
+                  <div className="flex items-center gap-3 min-w-0 flex-1 pr-3">
                     <span
-                      className="h-2.5 w-2.5 rounded-full"
-                      style={{
-                        backgroundColor:
-                          getStatusColor(
-                            sensor.status
-                          ),
-                      }}
+                      className={`size-2.5 rounded-full shrink-0 ${
+                        isWarning ? "bg-amber-500" : "bg-emerald-500"
+                      }`}
                     />
-
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-sm font-semibold text-foreground truncate">
+                        {gw.name}
+                      </h4>
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">
+                        {gw.id} · {gw.location}
+                      </p>
+                    </div>
                   </div>
 
-                  <p className="mt-1 text-xs text-gray-500">
-                    {sensor.location}
-                  </p>
-
-                  <div className="mt-3 flex gap-3 text-xs text-gray-600">
-
-                    <span>
-                      🌡️ {sensor.temperature}°C
-                    </span>
-
-                    <span>
-                      💧 {sensor.humidity}%
-                    </span>
-
-                  </div>
-
-                </button>
+                  {/* Details Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedGatewayId(gw.id);
+                      onInspectParentModule?.(gw.id);
+                    }}
+                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-border/80 bg-background px-3 py-1.5 text-xs font-medium text-foreground transition hover:border-emerald-500 hover:bg-emerald-500 hover:text-white shadow-2xs"
+                    title="View details of this module in Devices tab"
+                  >
+                    <ExternalLink className="size-3 text-emerald-600 dark:text-emerald-400 group-hover:text-white" />
+                    <span>Details</span>
+                  </button>
+                </div>
               );
-            }
-          )}
-
+            })}
+          </div>
         </div>
-
       </div>
-
     </section>
   );
 }

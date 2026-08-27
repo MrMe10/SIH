@@ -10,6 +10,8 @@ export const PARENT_MODULES: ParentModule[] = [
     status: 'online',
     nodeIds: ['ESP32-NODE-01', 'ESP32-NODE-04'],
     description: 'Primary high-throughput gateway managing grain silo & drying facility nodes.',
+    latitude: 12.9141,
+    longitude: 74.8560,
   },
   {
     id: 'DHR-GW-02',
@@ -20,6 +22,8 @@ export const PARENT_MODULES: ParentModule[] = [
     status: 'online',
     nodeIds: ['ESP32-NODE-02', 'ESP32-NODE-05'],
     description: 'Sub-zero insulated gateway handling cold vault and seed germination reserve probes.',
+    latitude: 13.3409,
+    longitude: 74.7421,
   },
   {
     id: 'DHR-GW-03',
@@ -30,6 +34,8 @@ export const PARENT_MODULES: ParentModule[] = [
     status: 'warning',
     nodeIds: ['ESP32-NODE-03', 'ESP32-NODE-06'],
     description: 'Environmental controller managing greenhouse climate and fermentation chambers.',
+    latitude: 12.9716,
+    longitude: 77.5946,
   },
   {
     id: 'DHR-GW-04',
@@ -38,7 +44,9 @@ export const PARENT_MODULES: ParentModule[] = [
     ipAddress: '192.168.1.40',
     protocol: 'Cellular 4G LTE Backup',
     status: 'online',
-    nodeIds: [],
+    nodeIds: ['ESP32-NODE-07', 'ESP32-NODE-08'],
     description: 'Standby backup gateway for heritage storage silos and auxiliary probes.',
+    latitude: 12.2958,
+    longitude: 76.6394,
   },
 ]

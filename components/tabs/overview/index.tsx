@@ -1,13 +1,27 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import MetricsGrid from "./metrics-grid";
-import ProjectLocations from "./project-locations";
 import RecentDevices from "./recent-devices";
+
+const ProjectLocations = dynamic(() => import("./project-locations"), {
+  ssr: false,
+});
 // import SensorActivityChart from "./sensor-activity-chart";
 // import SensorAlerts from "./sensor-alerts";
 // import SensorHealth from "./sensor-health";
 
-export default function OverviewTab() {
+interface OverviewTabProps {
+  onViewAllDevices?: () => void;
+  onInspectDevice?: (deviceId: string, parentModuleId?: string) => void;
+  onInspectParentModule?: (moduleId: string) => void;
+}
+
+export default function OverviewTab({
+  onViewAllDevices,
+  onInspectDevice,
+  onInspectParentModule,
+}: OverviewTabProps = {}) {
   return (
     <div className="w-full space-y-6">
       {/* ---------------------------------------------
@@ -17,16 +31,22 @@ export default function OverviewTab() {
       <MetricsGrid />
 
       {/* ---------------------------------------------
-          DEVICE MAP
+          MAP (LEFT) & KARNATAKA DEVICE MENU (RIGHT)
       --------------------------------------------- */}
 
-      <ProjectLocations />
+      <ProjectLocations
+        onInspectDevice={onInspectDevice}
+        onInspectParentModule={onInspectParentModule}
+      />
 
       {/* ---------------------------------------------
           RECENT DEVICES
       --------------------------------------------- */}
 
-      <RecentDevices />
+      <RecentDevices
+        onViewAll={onViewAllDevices}
+        onInspectDevice={onInspectDevice}
+      />
 
       {/* ---------------------------------------------
           SENSOR ACTIVITY

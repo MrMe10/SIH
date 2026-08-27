@@ -71,4 +71,6 @@ export interface ParentModule {
   status: 'online' | 'warning' | 'offline'
   nodeIds: string[]
   description?: string
+  latitude: number
+  longitude: number
 }

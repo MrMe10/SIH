@@ -396,5 +396,137 @@
       { "time": "15:00", "temp": 8.5, "humidity": 91.8, "rssi": -78, "heapKb": 174 },
       { "time": "18:00", "temp": 8.4, "humidity": 92.0, "rssi": -78, "heapKb": 174 }
     ]
+  },
+  {
+    "id": "ESP32-NODE-07",
+    "name": "ESP32 Node 07 - Shivamogga Agro-Probe",
+    "location": "Shivamogga, Karnataka",
+    "applicationNote": "High-Humidity Arecanut & Spice Plantation",
+    "status": "healthy",
+    "overallHealthScore": 96,
+    "hardware": {
+      "wifiRssiDbm": -55,
+      "wifiSignalQuality": "Excellent",
+      "ipAddress": "192.168.1.107",
+      "macAddress": "94:B9:7E:4A:21:07",
+      "batteryPercent": 92,
+      "batteryVoltage": 4.12,
+      "powerSource": "Solar + Battery",
+      "isCharging": true,
+      "cpuFreqMhz": 240,
+      "espCoreTempC": 28.4,
+      "freeHeapBytes": 191200,
+      "totalHeapBytes": 327680,
+      "uptimeString": "18d 06h 15m",
+      "firmwareVersion": "v2.4.2-karnataka",
+      "lastHeartbeat": "6s ago",
+      "packetLossPercent": 0.02
+    },
+    "temperatureSensor": {
+      "name": "SHT31 Ambient & Canopy Temp",
+      "model": "Sensirion SHT31-DIS",
+      "type": "temperature",
+      "gpioPin": "GPIO 21 (SDA)",
+      "busType": "I2C",
+      "currentReading": "28.0",
+      "unit": "°C",
+      "status": "operational",
+      "errorRatePercent": 0.0,
+      "lastCalibrationDate": "2026-08-15",
+      "crcErrors": 0,
+      "responseLatencyMs": 14,
+      "temperatureDrift": "±0.05°C"
+    },
+    "humiditySensor": {
+      "name": "SHT31 Canopy Relative Humidity",
+      "model": "Sensirion SHT31-DIS",
+      "type": "humidity",
+      "gpioPin": "GPIO 22 (SCL)",
+      "busType": "I2C",
+      "currentReading": "69.0",
+      "unit": "% RH",
+      "status": "operational",
+      "errorRatePercent": 0.0,
+      "lastCalibrationDate": "2026-08-15",
+      "crcErrors": 0,
+      "responseLatencyMs": 15
+    },
+    "diagnosticsLog": [
+      { "timestamp": "14:20:10", "level": "info", "message": "Solar irradiance nominal. Battery charge sustained at 92%." },
+      { "timestamp": "08:00:00", "level": "info", "message": "Canopy microclimate logging active (I2C 0x44 OK)." }
+    ],
+    "telemetryHistory": [
+      { "time": "06:00", "temp": 24.5, "humidity": 75.2, "rssi": -56, "heapKb": 192 },
+      { "time": "09:00", "temp": 26.2, "humidity": 72.0, "rssi": -55, "heapKb": 191 },
+      { "time": "12:00", "temp": 29.1, "humidity": 66.8, "rssi": -55, "heapKb": 191 },
+      { "time": "15:00", "temp": 29.8, "humidity": 65.4, "rssi": -55, "heapKb": 190 },
+      { "time": "18:00", "temp": 28.0, "humidity": 69.0, "rssi": -55, "heapKb": 191 }
+    ]
+  },
+  {
+    "id": "ESP32-NODE-08",
+    "name": "ESP32 Node 08 - Kalaburagi Solar Thermal Station",
+    "location": "Kalaburagi, Karnataka",
+    "applicationNote": "High Heat Semi-Arid Pulse Storage Vault",
+    "status": "healthy",
+    "overallHealthScore": 94,
+    "hardware": {
+      "wifiRssiDbm": -62,
+      "wifiSignalQuality": "Good",
+      "ipAddress": "192.168.1.108",
+      "macAddress": "94:B9:7E:4A:21:08",
+      "batteryPercent": 89,
+      "batteryVoltage": 4.08,
+      "powerSource": "Solar + Battery",
+      "isCharging": true,
+      "cpuFreqMhz": 240,
+      "espCoreTempC": 36.2,
+      "freeHeapBytes": 185400,
+      "totalHeapBytes": 327680,
+      "uptimeString": "22d 12h 45m",
+      "firmwareVersion": "v2.4.2-karnataka",
+      "lastHeartbeat": "10s ago",
+      "packetLossPercent": 0.04
+    },
+    "temperatureSensor": {
+      "name": "PT100 Thermal Silo Sensor",
+      "model": "RTD PT100 + MAX31865",
+      "type": "temperature",
+      "gpioPin": "GPIO 19 (SPI)",
+      "busType": "OneWire",
+      "currentReading": "31.0",
+      "unit": "°C",
+      "status": "operational",
+      "errorRatePercent": 0.0,
+      "lastCalibrationDate": "2026-08-12",
+      "crcErrors": 0,
+      "responseLatencyMs": 18,
+      "temperatureDrift": "±0.02°C"
+    },
+    "humiditySensor": {
+      "name": "SHT35 High-Temp Humidity Sensor",
+      "model": "Sensirion SHT35-DIS",
+      "type": "humidity",
+      "gpioPin": "GPIO 21/22 (I2C)",
+      "busType": "I2C",
+      "currentReading": "73.0",
+      "unit": "% RH",
+      "status": "operational",
+      "errorRatePercent": 0.0,
+      "lastCalibrationDate": "2026-08-12",
+      "crcErrors": 0,
+      "responseLatencyMs": 16
+    },
+    "diagnosticsLog": [
+      { "timestamp": "15:10:00", "level": "info", "message": "Thermal protection nominal. ESP core temperature 36.2°C." },
+      { "timestamp": "09:45:12", "level": "info", "message": "SPI MAX31865 RTD conversion completed without faults." }
+    ],
+    "telemetryHistory": [
+      { "time": "06:00", "temp": 27.0, "humidity": 78.0, "rssi": -63, "heapKb": 186 },
+      { "time": "09:00", "temp": 29.5, "humidity": 75.0, "rssi": -62, "heapKb": 185 },
+      { "time": "12:00", "temp": 32.4, "humidity": 71.2, "rssi": -62, "heapKb": 185 },
+      { "time": "15:00", "temp": 33.0, "humidity": 70.5, "rssi": -62, "heapKb": 185 },
+      { "time": "18:00", "temp": 31.0, "humidity": 73.0, "rssi": -62, "heapKb": 185 }
+    ]
   }
 ]
