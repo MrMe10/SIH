@@ -1,13 +1,21 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import MetricsGrid from "./metrics-grid";
-import ProjectLocations from "./project-locations";
 import RecentDevices from "./recent-devices";
+
+const ProjectLocations = dynamic(() => import("./project-locations"), {
+  ssr: false,
+});
 // import SensorActivityChart from "./sensor-activity-chart";
 // import SensorAlerts from "./sensor-alerts";
 // import SensorHealth from "./sensor-health";
 
-export default function OverviewTab() {
+interface OverviewTabProps {
+  onViewAllDevices?: () => void;
+}
+
+export default function OverviewTab({ onViewAllDevices }: OverviewTabProps = {}) {
   return (
     <div className="w-full space-y-6">
       {/* ---------------------------------------------

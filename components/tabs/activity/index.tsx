@@ -4,9 +4,10 @@ import { Room, getOverallStatus } from './types';
 import { SimulationGrid } from './simulation-grid';
 import { RoomDetails } from './room-details';
 import { SimulationControls } from './simulation-controls';
-// import { SimulationAlert } from './simulation-alert';
+import dynamic from 'next/dynamic';
 import { ActivityChart } from './activity-chart';
-import DeviceMap from './device-map'; // Existing import
+
+const DeviceMap = dynamic(() => import('./device-map'), { ssr: false });
 
 export default function ActivityTab() {
   const [activeView, setActiveView] = useState<'simulation' | 'deviceMap'>('simulation');
