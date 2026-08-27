@@ -13,9 +13,15 @@ const ProjectLocations = dynamic(() => import("./project-locations"), {
 
 interface OverviewTabProps {
   onViewAllDevices?: () => void;
+  onInspectDevice?: (deviceId: string, parentModuleId?: string) => void;
+  onInspectParentModule?: (moduleId: string) => void;
 }
 
-export default function OverviewTab({ onViewAllDevices }: OverviewTabProps = {}) {
+export default function OverviewTab({
+  onViewAllDevices,
+  onInspectDevice,
+  onInspectParentModule,
+}: OverviewTabProps = {}) {
   return (
     <div className="w-full space-y-6">
       {/* ---------------------------------------------
@@ -25,16 +31,22 @@ export default function OverviewTab({ onViewAllDevices }: OverviewTabProps = {})
       <MetricsGrid />
 
       {/* ---------------------------------------------
-          DEVICE MAP
+          MAP (LEFT) & KARNATAKA DEVICE MENU (RIGHT)
       --------------------------------------------- */}
 
-      <ProjectLocations />
+      <ProjectLocations
+        onInspectDevice={onInspectDevice}
+        onInspectParentModule={onInspectParentModule}
+      />
 
       {/* ---------------------------------------------
           RECENT DEVICES
       --------------------------------------------- */}
 
-      <RecentDevices />
+      <RecentDevices
+        onViewAll={onViewAllDevices}
+        onInspectDevice={onInspectDevice}
+      />
 
       {/* ---------------------------------------------
           SENSOR ACTIVITY

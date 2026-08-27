@@ -11,10 +11,28 @@ import { TabType } from '@/types/iot'
 
 export default function Page() {
   const [activeTab, setActiveTab] = useState<TabType>('Overview')
+  const [inspectDeviceId, setInspectDeviceId] = useState<string | null>(null)
+  const [inspectParentModuleId, setInspectParentModuleId] = useState<string | null>(null)
 
   const handleTabChange = (tab: TabType) => {
     console.log('Changing page to:', tab)
     setActiveTab(tab)
+  }
+
+  const handleInspectParentModule = (moduleId: string) => {
+    console.log('Inspecting parent module in Devices tab:', moduleId)
+    setInspectParentModuleId(moduleId)
+    setInspectDeviceId(null)
+    setActiveTab('Devices')
+  }
+
+  const handleInspectDevice = (deviceId: string, parentModuleId?: string) => {
+    console.log('Inspecting device in Devices tab:', deviceId, 'Parent module:', parentModuleId)
+    if (parentModuleId) {
+      setInspectParentModuleId(parentModuleId)
+    }
+    setInspectDeviceId(deviceId)
+    setActiveTab('Devices')
   }
 
   return (
@@ -36,11 +54,20 @@ export default function Page() {
           {activeTab === 'Overview' && (
             <OverviewTab
               onViewAllDevices={() => handleTabChange('Devices')}
+              onInspectDevice={handleInspectDevice}
+              onInspectParentModule={handleInspectParentModule}
             />
           )}
 
           {activeTab === 'Devices' && (
-            <DevicesTab />
+            <DevicesTab
+              initialParentModuleId={inspectParentModuleId}
+              initialDeviceId={inspectDeviceId}
+              onClearInitialNavigation={() => {
+                setInspectDeviceId(null)
+                setInspectParentModuleId(null)
+              }}
+            />
           )}
 
           {activeTab === 'Activity' && (
