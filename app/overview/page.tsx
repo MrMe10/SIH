@@ -47,14 +47,16 @@ export default function OverviewPage() {
         <div className="grid grid-cols-2 gap-4">
           {installations.map((inst) => {
             const isSafe = inst.status === 'SAFE';
+            
+            const cardStyle = isSafe 
+              ? 'border-green-500/20 bg-green-500/5 hover:bg-green-500/10 hover:border-green-500/40' 
+              : 'border-red-500/40 bg-red-500/10 hover:bg-red-500/20 hover:border-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.1)]';
+              
             return (
               <Link href={`/devices/${inst.id}`} key={inst.id} className="block">
                 <div 
-                  className="group relative border border-white/5 py-6 px-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/10 transition-all cursor-pointer h-full flex flex-col justify-between"
+                  className={`group relative py-6 px-4 rounded-xl transition-all cursor-pointer h-full flex flex-col justify-between border ${cardStyle}`}
                 >
-                  {/* Status Dot */}
-                  <div className={`absolute top-4 right-4 w-1.5 h-1.5 rounded-full ${isSafe ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse'}`} />
-                  
                   <h3 className="font-medium text-white text-xs mb-1 pr-4 truncate group-hover:text-blue-400 transition-colors">
                     {inst.name}
                   </h3>

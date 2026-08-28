@@ -19,14 +19,11 @@ export default function SimulationPage() {
   const [hoveredMod, setHoveredMod] = useState<string | null>(null);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isSimulating) {
-      interval = setInterval(() => {
-        tickSimulation();
-      }, 1000);
-    }
+    const interval = setInterval(() => {
+      tickSimulation();
+    }, 1000);
     return () => clearInterval(interval);
-  }, [isSimulating, tickSimulation]);
+  }, [tickSimulation]);
 
   const handleSackClick = (e: React.MouseEvent, moduleId: string) => {
     e.stopPropagation();
@@ -47,37 +44,44 @@ export default function SimulationPage() {
         <div className="w-full max-w-xl aspect-square bg-neutral-900/40 rounded-3xl p-4 border border-white/5 shadow-2xl relative grid grid-cols-2 grid-rows-2 gap-4">
           
           {Object.values(modules).map((mod) => (
-            <div key={mod.id} className={`border rounded-2xl relative transition-colors ${getModBorder(mod.status)} ${getModBg(mod.status)}`}>
-               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-neutral-950 border border-white/10 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider text-neutral-400 z-10 shadow-lg">
-                 {mod.node_type === 'PARENT' ? 'P1' : mod.node_type.replace('NODE', 'N')}
+            <div key={mod.id} className={`border rounded-2xl p-4 flex flex-col justify-between relative transition-colors ${getModBorder(mod.status)} ${getModBg(mod.status)}`}>
+               
+               <div className="flex justify-between items-center z-10 mb-2">
+                 <span className="text-xs font-semibold tracking-wider text-neutral-400 bg-neutral-950 border border-white/10 px-3 py-1 rounded-full shadow-sm">
+                   {mod.node_type === 'PARENT' ? 'P1' : mod.node_type.replace('NODE', 'N')}
+                 </span>
+                 <span className="text-[9px] text-neutral-500 uppercase tracking-wider">{mod.crop_type}</span>
                </div>
 
-               {/* Sacks */}
-               <div className="absolute inset-4 grid grid-cols-2 grid-rows-2 gap-4">
+               {/* Sacks Grid */}
+               <div className="flex-1 grid grid-cols-2 gap-2 my-2 z-10 relative px-4 py-2">
                  {[1, 2, 3, 4].map(idx => (
                     <div 
                       key={idx}
                       className="flex items-center justify-center rounded-full border border-white/10 bg-black/40 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer group"
                       onClick={(e) => handleSackClick(e, mod.id)}
-                      onMouseEnter={() => setHoveredMod(mod.id)}
-                      onMouseLeave={() => setHoveredMod(null)}
                     >
-                      <CircleDashed className="w-6 h-6 text-neutral-600 group-hover:text-neutral-400 transition-colors" />
+                      <CircleDashed className="w-5 h-5 text-neutral-600 group-hover:text-neutral-400 transition-colors" />
                     </div>
                  ))}
                </div>
 
-               {/* Hover Tooltip inside module */}
-               {hoveredMod === mod.id && !contextMenu && (
-                 <div className="absolute top-4 right-4 bg-neutral-950/90 backdrop-blur border border-white/10 p-3 rounded-lg z-20 shadow-xl w-32 animate-in fade-in zoom-in-95 duration-200">
-                    <p className="text-[10px] text-neutral-500 uppercase font-semibold tracking-wider mb-2">{mod.crop_type}</p>
-                    <div className="space-y-1 font-mono text-xs">
-                      <div className="flex justify-between text-neutral-300"><span>T:</span><span>{mod.temp.toFixed(1)}°C</span></div>
-                      <div className="flex justify-between text-neutral-300"><span>H:</span><span>{mod.humidity.toFixed(1)}%</span></div>
-                      <div className="flex justify-between text-neutral-300"><span>G:</span><span>{mod.co2.toFixed(1)}%</span></div>
-                    </div>
+               {/* Always visible live metrics */}
+               <div className="grid grid-cols-3 gap-1.5 z-10 mt-2">
+                 <div className="bg-black/40 rounded-lg p-2 border border-white/5 flex flex-col items-center">
+                   <div className="text-[9px] uppercase text-neutral-500 mb-0.5 tracking-wider">Temp</div>
+                   <div className={`font-mono text-[11px] ${mod.temp > 30 ? 'text-red-400' : 'text-neutral-200'}`}>{mod.temp.toFixed(1)}°</div>
                  </div>
-               )}
+                 <div className="bg-black/40 rounded-lg p-2 border border-white/5 flex flex-col items-center">
+                   <div className="text-[9px] uppercase text-neutral-500 mb-0.5 tracking-wider">Hum</div>
+                   <div className={`font-mono text-[11px] ${mod.humidity > 60 ? 'text-red-400' : 'text-neutral-200'}`}>{mod.humidity.toFixed(1)}%</div>
+                 </div>
+                 <div className="bg-black/40 rounded-lg p-2 border border-white/5 flex flex-col items-center">
+                   <div className="text-[9px] uppercase text-neutral-500 mb-0.5 tracking-wider">CO2</div>
+                   <div className={`font-mono text-[11px] ${mod.co2 > 20 ? 'text-red-400' : 'text-neutral-200'}`}>{mod.co2.toFixed(1)}%</div>
+                 </div>
+               </div>
+
             </div>
           ))}
 
@@ -112,14 +116,9 @@ export default function SimulationPage() {
         
         {/* Top Right: Inputs */}
         <div className="border border-white/5 p-6 rounded-2xl bg-white/[0.02] flex-none">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 rounded-lg bg-neutral-800 flex items-center justify-center border border-white/10">
-              <Leaf className="w-4 h-4 text-neutral-400" />
-            </div>
-            <div>
-              <h3 className="font-medium text-white">Global Modifiers</h3>
-              <p className="text-xs text-neutral-500">Adjust baseline room parameters</p>
-            </div>
+          <div className="mb-6">
+            <h3 className="font-medium text-white">Global Modifiers</h3>
+            <p className="text-xs text-neutral-500">Adjust baseline room parameters</p>
           </div>
 
           <div className="space-y-6">
@@ -149,13 +148,8 @@ export default function SimulationPage() {
 
         {/* Bottom Right: Output Log */}
         <div className="border border-white/10 rounded-2xl bg-[#050505] flex-1 flex flex-col relative overflow-hidden shadow-inner">
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-neutral-900/50">
-            <div className="flex gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
-              <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
-              <div className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500/50" />
-            </div>
-            <span className="ml-2 text-xs font-mono text-neutral-500">simulation_output.log</span>
+          <div className="flex items-center px-4 py-3 border-b border-white/10 bg-neutral-900/50">
+            <span className="text-xs font-mono text-neutral-500">simulation_output.log</span>
           </div>
           
           <div className="overflow-y-auto flex-1 p-4 font-mono text-[13px] leading-relaxed">
@@ -178,7 +172,6 @@ export default function SimulationPage() {
         </div>
 
       </div>
-
     </div>
   );
 }

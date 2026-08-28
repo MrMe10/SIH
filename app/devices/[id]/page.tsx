@@ -122,7 +122,7 @@ export default function DeviceDetailPage({ params }: { params: Promise<{ id: str
         {/* Tab Content */}
         <div className="flex-1 overflow-auto px-10 pb-10">
           {activeTab === 'devices' && (
-             <div className="grid grid-cols-2 gap-4 max-w-lg">
+             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
                 {modules.map((mod: any) => (
                   <div key={mod.id} className={`border rounded-xl p-4 transition-colors ${mod.status === 'SAFE' ? 'bg-neutral-900/50 border-white/5' : 'bg-red-500/10 border-red-500/30'}`}>
                     <div className="flex justify-between items-center mb-4 border-b border-white/5 pb-3">

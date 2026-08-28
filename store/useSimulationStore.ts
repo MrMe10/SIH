@@ -93,38 +93,63 @@ export const useSimulationStore = create<SimulationState>((set, get) => ({
       const newModules = { ...state.modules };
       let newLogs = [...state.logs];
 
-      // Process targeted simulation
-      if (state.isSimulating && state.simulationTarget.moduleId && state.simulationTarget.type) {
-        const targetId = state.simulationTarget.moduleId;
-        const type = state.simulationTarget.type;
-        const mod = { ...newModules[targetId] };
+      const targetId = state.simulationTarget.moduleId;
+      const anomalyType = state.simulationTarget.type;
+      
+      // Check if the primary infected zone has reached critical mass (starts spreading)
+      const isTargetCritical = targetId && newModules[targetId] ? newModules[targetId].status === 'CRITICAL' : false;
 
-        if (type === 'SPOILAGE') {
-          mod.temp += 0.5;
-          mod.co2 += 1.2;
-        } else if (type === 'FUNGUS') {
-          mod.humidity += 1.5;
-          mod.temp += 0.2;
-        }
-
-        // Check thresholds
-        if (mod.status === 'SAFE' && (mod.temp > 30 || mod.humidity > 60 || mod.co2 > 20)) {
-          mod.status = 'CRITICAL';
-          newLogs.push(`> WARNING: ${mod.name} anomaly arising! Threshold breached.`);
-        }
-
-        newModules[targetId] = mod;
-      }
-
-      // Apply global modifiers visually or incrementally (for now let's just let the UI reflect base + modifier)
-      // Actually, standardizing on just incrementing the base is easier for this demo.
       Object.keys(newModules).forEach(key => {
          const mod = { ...newModules[key] };
-         // We can apply global modifier slowly here or just let components read (mod.temp + global.temp)
-         // Let's just update the base directly for simplicity if global modifiers are meant to be direct actions.
-         if (state.globalModifiers.temp !== 0) {
-            // mod.temp += state.globalModifiers.temp;
+         
+         // Apply tiny random walk
+         mod.temp += (Math.random() * 0.4 - 0.2);
+         mod.humidity += (Math.random() * 1.0 - 0.5);
+         mod.co2 += (Math.random() * 0.2 - 0.1);
+
+         // Apply global modifiers
+         mod.temp += (state.globalModifiers.temp * 0.05);
+         mod.humidity += (state.globalModifiers.humidity * 0.05);
+         mod.co2 += (state.globalModifiers.co2 * 0.05);
+
+         // Process targeted anomaly and spread mechanics
+         if (state.isSimulating && targetId && anomalyType) {
+            if (targetId === mod.id) {
+              // Primary Zone Effect (Strong)
+              if (anomalyType === 'SPOILAGE') {
+                mod.temp += (Math.random() * 0.5 + 0.2);
+                mod.co2 += (Math.random() * 0.8 + 0.4);
+              } else if (anomalyType === 'FUNGUS') {
+                mod.humidity += (Math.random() * 1.5 + 0.5);
+                mod.temp += (Math.random() * 0.2);
+              }
+            } else if (isTargetCritical) {
+              // Spread Effect (Primary zone is critical, leaking ambiently into surrounding zones)
+              if (anomalyType === 'SPOILAGE') {
+                mod.temp += (Math.random() * 0.2 + 0.05);
+                mod.co2 += (Math.random() * 0.3 + 0.1);
+              } else if (anomalyType === 'FUNGUS') {
+                mod.humidity += (Math.random() * 0.6 + 0.2);
+                mod.temp += (Math.random() * 0.1);
+              }
+            }
          }
+
+         // Keep bounds realistic
+         mod.temp = Math.max(0, Math.min(60, mod.temp));
+         mod.humidity = Math.max(0, Math.min(100, mod.humidity));
+         mod.co2 = Math.max(0, Math.min(100, mod.co2));
+
+         // Check thresholds
+         const isCritical = mod.temp > 30 || mod.humidity > 60 || mod.co2 > 20;
+         if (isCritical && mod.status === 'SAFE') {
+            mod.status = 'CRITICAL';
+            newLogs.push(`WARNING: ${mod.name} crossed critical thresholds!`);
+         } else if (!isCritical && mod.status === 'CRITICAL') {
+            mod.status = 'SAFE';
+            newLogs.push(`SUCCESS: ${mod.name} stabilized.`);
+         }
+
          newModules[key] = mod;
       });
 

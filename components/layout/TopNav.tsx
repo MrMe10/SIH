@@ -14,9 +14,9 @@ export default function TopNav() {
   return (
     <nav className="sticky top-0 z-50 w-full backdrop-blur-md bg-neutral-950/80 border-b border-white/10">
       <div className="flex h-14 items-center justify-between px-6 max-w-[1600px] mx-auto">
-        <div className="flex items-center">
-          <span className="font-bold tracking-widest text-xl text-white">DRISHTI</span>
-        </div>
+        <Link href="/overview" className="flex items-center">
+          <span className="font-bold tracking-widest text-xl text-white hover:text-neutral-300 transition-colors">DRISHTI</span>
+        </Link>
         
         <div className="flex items-center gap-1">
           {navItems.map((item) => {
