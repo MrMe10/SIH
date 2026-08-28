@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const ModuleSchema = new mongoose.Schema({
   installation_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Installation', required: true },
-  node_type: { type: String, enum: ['PARENT', 'NODE1', 'NODE2', 'NODE3'], required: true },
+  node_type: { type: String, required: true }, // e.g., 'PARENT', 'NODE_1', 'NODE_2', ...
   crop_type: { type: String, required: true },
   current_metrics: {
     temp: { type: Number, required: true },

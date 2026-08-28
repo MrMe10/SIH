@@ -1,7 +1,6 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Activity } from 'lucide-react';
 
 export default function TopNav() {
   const pathname = usePathname();
@@ -15,11 +14,8 @@ export default function TopNav() {
   return (
     <nav className="sticky top-0 z-50 w-full backdrop-blur-md bg-neutral-950/80 border-b border-white/10">
       <div className="flex h-14 items-center justify-between px-6 max-w-[1600px] mx-auto">
-        <div className="flex items-center gap-3">
-          <div className="h-7 w-7 flex items-center justify-center bg-white text-black rounded-md">
-            <Activity className="h-4 w-4" />
-          </div>
-          <span className="font-semibold tracking-wide text-sm text-white">DRISHTI</span>
+        <div className="flex items-center">
+          <span className="font-bold tracking-widest text-xl text-white">DRISHTI</span>
         </div>
         
         <div className="flex items-center gap-1">
